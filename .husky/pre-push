@@ -1,0 +1,4 @@
+# Cross-file checks that lint-staged cannot do on a partial file set.
+# Skip with `git push --no-verify` when pushing a work-in-progress branch.
+pnpm typecheck
+pnpm test
