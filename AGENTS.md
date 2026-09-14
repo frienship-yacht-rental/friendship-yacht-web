@@ -61,5 +61,5 @@ them with a Playwright spec in `e2e/` instead.
 
 ## Commits
 
-Conventional Commits, enforced by commitlint on `commit-msg` and on PR titles.
+Conventional Commits, enforced by commitlint on `commit-msg`.
 Example: `feat(yachts): add fleet listing page`.

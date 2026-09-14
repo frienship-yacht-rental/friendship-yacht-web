@@ -1,5 +1,5 @@
 /**
- * Conventional Commits. Enforced on commit-msg by husky, and on PR titles in CI.
+ * Conventional Commits. Enforced on commit-msg by husky.
  * https://www.conventionalcommits.org
  */
 const commitlintConfig = {

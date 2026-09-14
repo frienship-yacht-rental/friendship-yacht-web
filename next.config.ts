@@ -79,7 +79,7 @@ const nextConfig: NextConfig = {
 
   // Fail the production build on type errors. Set explicitly so nobody
   // silently disables it. (Next 16 removed `next lint`, so there is no
-  // corresponding `eslint` option — linting runs as its own CI step.)
+  // corresponding `eslint` option — linting runs as its own step, `pnpm lint`.)
   typescript: { ignoreBuildErrors: false },
 
   images: {

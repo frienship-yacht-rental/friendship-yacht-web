@@ -8,14 +8,12 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
 
-  // Fail the CI build if a `test.only` was committed.
+  // Refuse to pass on an automated run if a `test.only` was committed.
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
 
-  reporter: isCI
-    ? [["github"], ["html", { open: "never" }]]
-    : [["list"], ["html", { open: "never" }]],
+  reporter: [["list"], ["html", { open: "never" }]],
 
   use: {
     baseURL,

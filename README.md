@@ -40,20 +40,20 @@ malformed value fails fast with a readable message instead of surfacing as
 
 ## Scripts
 
-| Script               | Purpose                                 |
-| -------------------- | --------------------------------------- |
-| `pnpm dev`           | Dev server (Turbopack)                  |
-| `pnpm build`         | Production build                        |
-| `pnpm start`         | Serve the production build              |
-| `pnpm typecheck`     | `tsc --noEmit`                          |
-| `pnpm lint`          | ESLint, zero warnings tolerated         |
-| `pnpm format`        | Write Prettier formatting               |
-| `pnpm test`          | Unit tests, single run                  |
-| `pnpm test:watch`    | Unit tests in watch mode                |
-| `pnpm test:coverage` | Unit tests with coverage thresholds     |
-| `pnpm test:e2e`      | Playwright against a production build   |
-| `pnpm analyze`       | Build with the bundle analyzer          |
-| `pnpm validate`      | Everything CI runs — use before pushing |
+| Script               | Purpose                                         |
+| -------------------- | ----------------------------------------------- |
+| `pnpm dev`           | Dev server (Turbopack)                          |
+| `pnpm build`         | Production build                                |
+| `pnpm start`         | Serve the production build                      |
+| `pnpm typecheck`     | `tsc --noEmit`                                  |
+| `pnpm lint`          | ESLint, zero warnings tolerated                 |
+| `pnpm format`        | Write Prettier formatting                       |
+| `pnpm test`          | Unit tests, single run                          |
+| `pnpm test:watch`    | Unit tests in watch mode                        |
+| `pnpm test:coverage` | Unit tests with coverage thresholds             |
+| `pnpm test:e2e`      | Playwright against a production build           |
+| `pnpm analyze`       | Build with the bundle analyzer                  |
+| `pnpm validate`      | Every hook check in one go — run before pushing |
 
 ## Project structure
 
@@ -128,7 +128,7 @@ Security headers are applied to every route in `next.config.ts`: CSP, HSTS
 (preload-ready), `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`,
 `Permissions-Policy` and `Cross-Origin-Opener-Policy`. `poweredByHeader` is off.
 The Playwright suite asserts these are actually present, so a regression fails
-CI rather than shipping quietly.
+the E2E run rather than shipping quietly.
 
 The CSP allows `'unsafe-inline'` for scripts and styles because the site is
 statically prerendered and Next inlines its bootstrap payload without a nonce.
@@ -159,17 +159,17 @@ so Vitest cannot import them at all.
 
 ## Quality gates
 
-Enforced locally by husky, and again in CI:
+Enforced locally by husky:
 
 - **pre-commit** — `lint-staged` formats and lints staged files
 - **commit-msg** — Conventional Commits, via commitlint
 - **pre-push** — `typecheck` plus unit tests (`--no-verify` to skip on a WIP
   branch)
-- **CI** — typecheck, lint, format check, unit tests with coverage, production
-  build, and Playwright on Chromium, Firefox, WebKit and mobile Safari
 
-PR titles are linted too, since PRs are squash-merged and the title becomes the
-commit message.
+No hosted CI is configured, so the pre-push hook is the last automated gate.
+Run `pnpm validate` before opening a PR, and `pnpm test:e2e` for changes that
+touch routing, headers, metadata or async data — nothing runs Playwright
+automatically.
 
 ## Deferred
 
