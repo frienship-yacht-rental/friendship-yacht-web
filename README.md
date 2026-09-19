@@ -61,6 +61,11 @@ malformed value fails fast with a readable message instead of surfacing as
 src/
 ├── app/                  # Routes. File conventions only, no business logic.
 │   ├── layout.tsx        # Root layout, fonts, metadata, providers
+│   ├── page.tsx          # /
+│   ├── yachts/           # /yachts: ISR catalogue with graceful fallback
+│   ├── contact/          # /contact: enquiry form (Server Action)
+│   ├── api/health/       # Web-tier liveness probe
+│   ├── api/revalidate/   # On-demand cache invalidation webhook
 │   ├── error.tsx         # Route-level error boundary
 │   ├── global-error.tsx  # Root-layout error boundary
 │   ├── not-found.tsx     # 404
@@ -69,21 +74,27 @@ src/
 ├── components/
 │   ├── ui/               # shadcn/ui. Vendored: regenerate, do not hand-edit.
 │   └── providers.tsx     # Client provider boundary
-├── features/             # Feature modules. See features/yachts/README.md.
-│   └── yachts/
-│       ├── schema.ts     # Zod contract with the API
-│       └── queries.ts    # Server-side reads, cache tags
+├── features/             # Vertical slices. See features/yachts/README.md.
+│   ├── yachts/           # Read reference: schema, queries, hooks, components
+│   └── inquiries/        # Write reference: schema, actions, form component
 ├── lib/
 │   ├── api/              # Typed HTTP client (core / server / browser)
+│   ├── actions/          # ActionResult + runAction for Server Actions
+│   ├── observability/    # reportError, the single error-reporting seam
 │   ├── query/            # TanStack Query configuration
 │   └── site-config.ts    # Brand and SEO constants
-├── test/                 # Vitest setup and render helpers
+├── test/                 # Vitest setup, render helpers, server-only stub
 └── env.ts                # Validated environment variables
 e2e/                      # Playwright specs
+docs/adr/                 # Architecture decision records
 ```
 
 Features never import from each other. Anything shared moves up into
 `components/` or `lib/`.
+
+The layering rules, how to add a feature, and how to reuse this repository
+as a boilerplate are in [AGENTS.md](AGENTS.md). Decisions and their
+trade-offs are in [docs/adr/](docs/adr/).
 
 ## Architecture notes
 
@@ -108,11 +119,31 @@ Errors are typed: `ApiError` (HTTP status, with `isNotFound` and `isRetryable`),
 `ApiValidationError` (contract violation) and `ApiNetworkError` (transport). The
 query client's retry policy uses these, so it will not retry a 404.
 
+### Writes
+
+Server Actions never throw. They return an `ActionResult` (success with
+data, or error with a stable `code`, a user-safe `message` and optional
+`fieldErrors`) produced by `runAction` in `src/lib/actions/`. Forms consume
+it with `useActionState`: field errors render inline, anything else becomes
+a toast. See ADR-0006 and `features/inquiries` for the reference.
+
+### Observability
+
+Every boundary (error pages, Server Actions, degraded catalogue renders)
+reports through `reportError` in `src/lib/observability/`. It currently
+logs; adopting Sentry or similar is a change to that one file.
+
 ### Caching
 
-Reads set `next: { revalidate, tags }` so a webhook can invalidate exactly what
-changed through `revalidateTag`. Cache tags live next to the queries that use
-them.
+Reads set `next: { revalidate, tags }` and catalogue routes export
+`revalidate` explicitly. `POST /api/revalidate` (secured by
+`REVALIDATE_SECRET`) calls `revalidateTag(tag, "max")` for the tags it is
+given, so the API can refresh pages the moment data changes instead of
+waiting for the window to expire. Cache tags live next to the queries that
+set them.
+
+If the API is unreachable, catalogue pages render a fallback instead of
+failing and heal on the next revalidation (ADR-0007).
 
 **Not yet enabled: Cache Components.** Next 16's `cacheComponents` flag makes
 data dynamic by default with explicit `use cache` opt-in, and turns on Partial
@@ -147,7 +178,9 @@ that.
 | E2E   | Playwright   | Async Server Components, navigation, headers, SEO |
 
 Vitest cannot render async Server Components. That is a known React limitation
-rather than a configuration gap, so anything async belongs in `e2e/`.
+rather than a configuration gap, so anything async belongs in `e2e/`. Three
+Playwright cases exercise the real API and skip themselves when it is not
+running on port 8000; start it to turn them on.
 
 Playwright runs against a production build, not `next dev`: prerendering,
 minification and real response headers are exactly what E2E tests exist to
