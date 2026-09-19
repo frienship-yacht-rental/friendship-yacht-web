@@ -18,9 +18,9 @@ describe("Home", () => {
 
     expect(
       screen.getByRole("link", { name: /explore the fleet/i }),
-    ).toHaveAttribute("href", "/");
+    ).toHaveAttribute("href", "/yachts");
     expect(
       screen.getByRole("link", { name: /request a consultation/i }),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("href", "/contact");
   });
 });

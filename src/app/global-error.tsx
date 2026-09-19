@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { reportError } from "@/lib/observability/report-error";
+
 /**
  * Last-resort boundary for errors thrown by the root layout itself. It replaces
  * the whole document, so it must render its own <html> and <body> and cannot
@@ -17,7 +19,10 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
-    console.error("Global error:", error);
+    reportError(error, {
+      source: "global-error-boundary",
+      digest: error.digest,
+    });
   }, [error]);
 
   return (

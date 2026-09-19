@@ -3,8 +3,15 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
-  // Native replacement for vite-tsconfig-paths; resolves the `@/*` alias.
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    // Native replacement for vite-tsconfig-paths; resolves the `@/*` alias.
+    tsconfigPaths: true,
+    // `server-only` throws outside RSC. Stub it so server modules are testable.
+    alias: {
+      "server-only": new URL("./src/test/stubs/server-only.ts", import.meta.url)
+        .pathname,
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,
@@ -33,10 +40,10 @@ export default defineConfig({
         // Framework file conventions — exercised by the Playwright suite.
         "src/app/**/{layout,error,global-error,not-found,loading}.tsx",
         "src/app/**/{sitemap,robots}.ts",
-        // `import "server-only"` throws outside a React Server Component, so
-        // these cannot be imported by Vitest at all. Covered by e2e instead.
+        // Thin wiring over fetch with no branching; exercised by e2e instead.
         "src/lib/api/server.ts",
         "src/features/**/queries.ts",
+        "src/features/**/actions.ts",
         // Provider wiring with no branching logic of its own.
         "src/components/providers.tsx",
         "src/env.ts",

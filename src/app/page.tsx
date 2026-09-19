@@ -18,10 +18,10 @@ export default function Home() {
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
           <Button size="lg" asChild>
-            <Link href="/">Explore the fleet</Link>
+            <Link href="/yachts">Explore the fleet</Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <Link href="/">Request a consultation</Link>
+            <Link href="/contact">Request a consultation</Link>
           </Button>
         </div>
       </div>

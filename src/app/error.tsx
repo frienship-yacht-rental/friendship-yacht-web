@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { reportError } from "@/lib/observability/report-error";
 
 /**
  * Route-level error boundary. Catches render and data errors below it while
@@ -26,9 +27,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Replace with the error reporter when observability is wired up. The
-    // digest correlates this with the server-side stack trace.
-    console.error("Route error:", error);
+    reportError(error, { source: "error-boundary", digest: error.digest });
   }, [error]);
 
   return (
